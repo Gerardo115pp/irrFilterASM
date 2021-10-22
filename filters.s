@@ -42,7 +42,7 @@ irrFilterSSE:
     %define B rbp-8
     %define C rbp-12
     %define D rbp-16
-    %define X_value rbp-20
+    %define X_values rbp-32
     callee_save_registers
 
     ; initialize the multiplier matrix
@@ -66,56 +66,37 @@ irrFilterSSE:
 
     ; loop over the array
     finit
-    .irr_filter_loop:
+    .irr_filter_loop:\
+        pxor xmm0, xmm0
         pinsrd xmm0, dword [rdi+rcx*4], 0
         pinsrd xmm0, dword [rdi+(rcx+1)*4], 1
         pinsrd xmm0, dword [rdi+(rcx+2)*4], 2
         pinsrd xmm0, dword [rdi+(rcx+3)*4], 3
         mulps xmm0, xmm1 ; xmm0 = xmm0/2
+        movups [rbp-0x20], xmm0
         
         ; we cant use sse on y[n] because its not only in terms of X, but also in terms of y[n-1]
         ; which means we have to calculate those manually
-        
-        fld dword [rsi+(rcx-1)*4]
-        fld dword [A]
-        fmul st0, st1
-        pextrd [X_value], xmm0, 0
-        fld dword [X_value]
-        fadd st0, st1
-        fstp dword [rsi+rcx*4] ; y[n] = y[n-1]*0.5
-        fstp st0
-        fstp st0
+        xor rbx, rbx; rbx will be the offset for the vectors, rbx = n-1
+        push rcx
+        push rsi
+        dec rcx
+        lea rsi, [rsi+rcx*4] ; set rsi to the address of y[n-1]
+        mov rcx, 4
+        .y_calculation_loop:
+            fld dword [rsi+rbx*4] ; y[n-1]
+            fld dword [A]
+            fmul st0, st1
+            fld dword [(rbp-32)+rbx*4] ; X[rbx]
+            inc rbx; rbx = n
+            fadd st0, st1
+            fstp dword [rsi+rbx*4] ; y[n] =X[n]*0.5 + y[n-1]*0.5
+            fstp st0
+            fstp st0
 
-        fld dword [rsi+rcx*4]
-        fld dword [A]
-        fmul st0, st1
-        pextrd [X_value], xmm0, 1
-        fld dword [X_value]
-        fadd st0, st1
-        fstp dword [rsi+(rcx+1)*4] ; y[n+1] = y[n]*0.5
-        fstp st0
-        fstp st0
-
-        fld dword [rsi+(rcx+1)*4]
-        fld dword [A]
-        fmul st0, st1
-        pextrd [X_value], xmm0, 2
-        fld dword [X_value]
-        fadd st0, st1
-        fstp dword [rsi+(rcx+2)*4] ; y[n+2] = y[n+1]*0.5
-        fstp st0
-        fstp st0
-
-        fld dword [rsi+(rcx+2)*4]
-        fld dword [A]
-        fmul st0, st1
-        pextrd [X_value], xmm0, 3
-        fld dword [X_value]
-        fadd st0, st1
-        fstp dword [rsi+(rcx+3)*4] ; y[n+3] = y[n+2]*0.5
-        fstp st0
-        fstp st0
-
+            loop .y_calculation_loop
+        pop rsi
+        pop rcx
 
         add rcx, 4 ; increment the loop counter
         cmp rcx, rdx

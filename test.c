@@ -15,20 +15,22 @@ void printAudioData(float* audio_data, int length)
 int testIrrFilter(float* filter_data, float* audio_data, int length)
 {
     float* correct_data = (float*)malloc(sizeof(float) * length);
-    correct_data[0] = audio_data[0]*0.5;
+    int test_result = 1;
+    
     printf("correct - irrOutput\n\n");
-    printf("0 : %.5f - %.5f\n", correct_data[0], filter_data[0]);
-    for (int i = 1; i < length; i++)
+    for (int i = 0; i < length; i++)
     {
-        correct_data[i] = (audio_data[i]*0.5) + (correct_data[i-1]*0.5) ;
-        printf("%d : %.5f - %.5f\n", i, correct_data[i], filter_data[i]);
+        correct_data[i] = i > 0 ? (audio_data[i]*0.5) + (correct_data[i-1]*0.5) : audio_data[i]*0.5; ;
+        printf("%d : %.5f - %.5f -> ", i, correct_data[i], filter_data[i]);
         if (correct_data[i] != filter_data[i])
         {
-        printf("\n");
-        return 1;
+            printf("FAIL\n");
+            test_result = 0;
+        } else {
+            printf("PASS\n");
         }
     }
-    return 1;
+    return test_result;
 }
 
 int main(int argc, char const *argv[])
