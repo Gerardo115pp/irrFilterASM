@@ -1,0 +1,38 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "nasm -f elf64 filters.s -o aux.o && gcc -shared -fPIC -o libFilters.so aux.o && rm ./aux.o",
+            "group": "build"
+        },
+        {
+            "label": "assemble",
+            "type": "shell",
+            "command": "nasm -f elf64 filters.s -o aux.o",
+            "group": "test"
+        },
+        {
+            "label": "compileDebug",
+            "type": "shell",
+            "dependsOn": "assemble",
+            "command": "gcc -g -o test aux.o test.c",
+            "group": "test"
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "rm aux.o libFilters.so test",
+            "group": "test"
+        },
+
+        {
+            "label": "testC",
+            "type": "shell",
+            "command": "nasm -f elf64 -o aux.o filters.s && gcc -o test test.c aux.o && rm aux.o && ./test",
+        }
+    ]
+}
