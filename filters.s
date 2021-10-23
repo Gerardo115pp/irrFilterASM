@@ -78,12 +78,14 @@ irrFilterSSE:
         ; we cant use sse on y[n] because its not only in terms of X, but also in terms of y[n-1]
         ; which means we have to calculate those manually
         xor rbx, rbx; rbx will be the offset for the vectors, rbx = n-1
-        push rcx
         push rsi
+        push rcx
+        mov rax, rcx ; we will use rax to determine if the buffer is full
         dec rcx
         lea rsi, [rsi+rcx*4] ; set rsi to the address of y[n-1]
         mov rcx, 4
         .y_calculation_loop:
+
             fld dword [rsi+rbx*4] ; y[n-1]
             fld dword [A]
             fmul st0, st1
@@ -94,9 +96,14 @@ irrFilterSSE:
             fstp st0
             fstp st0
 
+            inc rax
+            cmp rax, rdx
+            jge .y_calculation_loop_end
+
             loop .y_calculation_loop
-        pop rsi
+        .y_calculation_loop_end:
         pop rcx
+        pop rsi
 
         add rcx, 4 ; increment the loop counter
         cmp rcx, rdx

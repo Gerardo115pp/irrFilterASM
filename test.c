@@ -16,7 +16,7 @@ int testIrrFilter(float* filter_data, float* audio_data, int length)
 {
     float* correct_data = (float*)malloc(sizeof(float) * length);
     int test_result = 1;
-    
+
     printf("correct - irrOutput\n\n");
     for (int i = 0; i < length; i++)
     {
@@ -35,13 +35,13 @@ int testIrrFilter(float* filter_data, float* audio_data, int length)
 
 int main(int argc, char const *argv[])
 {
-    float audio_data[] = { 12.58669026, 12.08013572, 14.40115982,  9.66286285, 10.27243582, 12.61772494,
-     6.41063247,  5.83784748, 14.10010153};
-    float filtered_data[9] = {0};
+    float audio_data[] = {2.36645044, 2.24270133, 1.90397508, 8.91339601, 7.07949785,
+       4.40798942, 7.12211063, 4.63229018, 2.21389533};
+    float filtered_data[10] = {0};
 
-    irrFilterSSE(audio_data, filtered_data, 9);
+    irrFilterSSE(audio_data, filtered_data, 10);
 
-    int test_passed = testIrrFilter(filtered_data, audio_data, 9);
+    int test_passed = testIrrFilter(filtered_data, audio_data, 10);
     if (test_passed)
     {
         printf("\n\nTest passed\n");
